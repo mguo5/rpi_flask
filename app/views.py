@@ -1,30 +1,18 @@
-from . import app
+from flask import Blueprint, render_template, session, abort, Response
+import time
+import serial
+import os
+from pi_serial import uart_communicate
 
-"""Instantiate UART module for Raspberry Pi"""
-ser = serial.Serial(
-    port='/dev/serial0',
-    baudrate=9600,
-    parity=serial.PARITY_NONE,
-    stopbits=serial.STOPBITS_ONE,
-    bytesize=serial.EIGHTBITS,
-    timeout=0.5)
+# import camera driver
+if os.environ.get('CAMERA'):
+    Camera = import_module('camera_' + os.environ['CAMERA']).Camera
+else:
+    from camera_pi import Camera
 
-def send_thru_uart(to_send):
-    """Helper function to send UART through Raspberry Pi GPIO to STM32"""
-    ser.write(str.encode(to_send))
-    ser.flushInput()
-    ser.flushOutput()
-    time.sleep(.5)
-    
-    timeout = time.time() + 2
-    while True:
-       ret = ser.readline()
-       if ret != b'':
-          return
-       if time.time() > timeout:
-          send_thru_uart(to_send)
+view = Blueprint('view', __name__)
 
-@app.route('/')
+@view.route('/')
 def index():
     """Video streaming home page."""
     return render_template('index.html')
@@ -38,52 +26,53 @@ def gen(camera):
         yield b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n--frame\r\n'
 
 
-@app.route('/video_feed')
+@view.route('/video_feed')
 def video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""
     return Response(gen(Camera()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/blue_on')
+@view.route('/blue_on')
 def blue_on():
     """Route to turn on the Blue LED. TODO: put functionality as a button onClick method to avoid reloading page"""
-    if(ser.isOpen() == False):
-        ser.open()
-    ser.reset_input_buffer()
+    """Instantiate UART module for Raspberry Pi"""
+    uart = uart_communicate()
+    if(uart.ser.isOpen() == False):
+        uart.ser.open()
+    uart.ser.reset_input_buffer()
     to_send = "LBO"
-
-    send_thru_uart(to_send)
+    uart.send_thru_uart(to_send)
     return render_template('index.html')
 
-@app.route('/blue_off')
+@view.route('/blue_off')
 def blue_off():
     """Route to turn off the Blue LED. TODO: put functionality as a button onClick method to avoid reloading page"""
-    if(ser.isOpen() == False):
-        ser.open()
-    ser.reset_input_buffer()
+    uart = uart_communicate()
+    if(uart.ser.isOpen() == False):
+        uart.ser.open()
+    uart.ser.reset_input_buffer()
     to_send = "LBF"
-
-    send_thru_uart(to_send)
+    uart.send_thru_uart(to_send)
     return render_template('index.html')
 
-@app.route('/red_on')
+@view.route('/red_on')
 def red_on():
     """Route to turn on the Red LED. TODO: put functionality as a button onClick method to avoid reloading page"""
-    if(ser.isOpen() == False):
-        ser.open()
-    ser.reset_input_buffer()
+    uart = uart_communicate()
+    if(uart.ser.isOpen() == False):
+        uart.ser.open()
+    uart.ser.reset_input_buffer()
     to_send = "LRO"
-
-    send_thru_uart(to_send)
+    uart.send_thru_uart(to_send)
     return render_template('index.html')
 
-@app.route('/red_off')
+@view.route('/red_off')
 def red_off():
     """Route to turn off the Red LED. TODO: put functionality as a button onClick method to avoid reloading page"""
-    if(ser.isOpen() == False):
-        ser.open()
-    ser.reset_input_buffer()
+    uart = uart_communicate()
+    if(uart.ser.isOpen() == False):
+        uart.ser.open()
+    uart.ser.reset_input_buffer()
     to_send = "LRF"
-
-    send_thru_uart(to_send)
+    uart.send_thru_uart(to_send)
     return render_template('index.html')
