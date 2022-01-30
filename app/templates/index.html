@@ -1,13 +1,118 @@
+<!DOCTYPE HTML>
 <html>
-  <head>
-    <title>Video Streaming Demonstration</title>
-  </head>
-  <body>
-    <h1>Video Streaming Demonstration</h1>
-    <img src="{{ url_for('view.video_feed') }}" width="500" height="400">
-    <a href="/blue_on">Turn on Blue</a>
-    <a href="/blue_off">Turn off Blue</a>
-    <a href="/red_on">Turn on Red</a>
-    <a href="/red_off">Turn off Red</a>
-  </body>
+<head>
+	<title>Frontend test</title>
+	<meta name="viewport" content="initial-scale=1.0" />
+
+	<style>
+		#dmm , #dmm2 {
+			display: inline-block;
+		}
+
+		#turn {
+			width: 188px; height: 188px;
+		}
+		#turn .top
+		{
+			transform-origin: 94px 94px;
+			-moz-transform-origin: 94px 94px;
+			-webkit-transform-origin: 94px 94px;
+			width: 188px; height: 188px;
+		}
+		#turn2
+		{
+			height: 94px;
+			width: 94px;
+		}
+
+		#turn2 .top
+		{
+			height: 94px;
+			width: 94px;
+		}
+
+		#bottom
+		{
+			position: fixed;
+			height: 30px;
+
+			bottom: 0;
+			right: 0;
+		}
+		#bottom .measure
+		{
+			margin-right: 50px;
+			-webkit-overflow-scrolling: touch;
+		}
+	</style>
+	<!-- <script type="text/javascript" src="{{url_for('static', filename='visir_html5/jquery-2.1.3.min.js')}}"></script> -->
+	<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
+	<script type="text/javascript" src="{{url_for('static', filename='visir_html5/utils.js')}}"></script>
+	<script type="text/javascript" src="{{url_for('static', filename='visir_html5/jquery-turnable.js')}}"></script>
+	<script type="text/javascript" src="{{url_for('static', filename='visir_html5/jquery-draggable.js')}}"></script>
+	<script type="text/javascript" src="{{url_for('static', filename='visir_html5/jquery-updownbutton.js')}}"></script>
+
+    <script type="text/javascript" id="visirjs" src="{{url_for('static', filename='visir_html5/visir.js')}}"></script>
+
+	<script>
+
+	function init()
+	{
+		var circuit = '<circuit><circuitlist>W_X A23 DMM_VHI\nW_X F23 DMM_VLO\nR_X A23 F23 10k\nVDC+6V AA\nDMM_2 AA 0\n</circuitlist></circuit>';
+		var instrxml = '<multimeter id="1"><dmm_function value="ac current"/><dmm_resolution value="3.5"/><dmm_range value="10"/></multimeter><multimeter id="2"><dmm_function value="dc volts"/><dmm_resolution value="3.5"/><dmm_range value="10"/></multimeter>';
+		var dcpower = '<dcpower><dc_outputs><dc_output channel="6V+"><dc_voltage value="5"/><dc_current value="0.5"/></dc_output><dc_output channel="25V+"><dc_voltage value="0"/><dc_current value="0.5"/></dc_output><dc_output channel="25V-"><dc_voltage value="0"/><dc_current value="0.5"/></dc_output></dc_outputs></dcpower>';
+
+		trace("starting up..");
+
+		var transport = new visir.JSTransport(visir.SetWorking);
+		transport.onerror = function(err) { alert("Error: " + err); }
+
+		transport.Connect("http://194.47.134.182:8080/measureserver", "fnord");
+
+		var breadboard = new visir.Breadboard(1, $("#breadboard"));
+
+		$("#showlog").click( function() {
+			$("#logwindow").css("display", "block");
+		});
+		$("#hidelog").click( function() {
+			$("#logwindow").css("display", "none");
+		});
+	}
+	$( function() {
+        visir.Load(init, function() {
+            alert("Failed");
+        }, "");
+    });
+</script>
+<script type="text/javascript" src="{{url_for('static', filename='visir_html5/serial.js')}}"></script>
+
+</head>
+<body>
+	<button class="measure">Measure</button><br>
+	<button class='test_button' onclick='blue_click(this);'>Blue</button>
+	<button class='test_button' onclick='red_click(this);'>Red</button>
+	<button class='test_button' onclick='orange_click(this);'>Orange</button>
+	<button class='test_button' onclick='green_click(this);'>Green</button>
+	<button class='test_button' onclick='porta_click(this);'>PortA</button>
+	<button class='test_button' onclick='portb_click(this);'>PortB</button>
+	<button class='test_button' onclick='portc_click(this);'>PortC</button>
+	<br/>
+	<div id="dmm"></div>
+	<div id="dmm2"></div>
+	<div id="tripledc"></div>
+	<div id="breadboard"></div>
+	<div id="bottom">
+		<button class="measure">Measure</button>
+	</div>
+	<div>
+		Log window:
+		<button id="showlog">Show</button>
+		<button id="hidelog">Hide</button>
+	</div>
+	<div>
+	<!-- <img src="{{ url_for('view.video_feed') }}" width="500" height="400">  -->
+	</div>
+	<div id="logwindow" style="border: 1px solid #000000; padding: 2px; height: 500px; width: 800px; overflow: scroll; display:none"></div>
+</body>
 </html>
+
